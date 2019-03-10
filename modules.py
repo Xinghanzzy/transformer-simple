@@ -114,6 +114,7 @@ def embedding(inputs,
         if zero_pad:
             lookup_table = tf.concat((tf.zeros(shape=[1, num_units]),
                                       lookup_table[1:, :]), 0)
+        # todo: embedding_lookup
         outputs = tf.nn.embedding_lookup(lookup_table, inputs)
         
         if scale:

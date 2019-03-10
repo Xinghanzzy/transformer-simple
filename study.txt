@@ -1,0 +1,4 @@
+y_list.append(np.array(y))
+<class 'list'>: [129, 1622, 6, 358, 7, 6349, 3]
+<class 'list'>: [array([ 129, 1622,    6,  358,    7, 6349,    3])]
+

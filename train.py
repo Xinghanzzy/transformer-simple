@@ -16,7 +16,7 @@ from tqdm import tqdm
 
 class Graph():
     def __init__(self, is_training=True):
-        self.graph = tf.Graph()
+        self.graph = tf.Graph() # 同名 多态吗？
         with self.graph.as_default():
             if is_training:
                 self.x, self.y, self.num_batch = get_batch_data() # (N, T)

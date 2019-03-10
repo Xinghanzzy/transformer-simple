@@ -26,7 +26,7 @@ def make_vocab(fpath, fname):
     text = codecs.open(fpath, 'r', 'utf-8').read()
     text = regex.sub("[^\s\p{Latin}']", "", text)   #空格等不可见字符 和 拉丁字母 以外的被删除
     words = text.split()
-    word2cnt = Counter(words) # 单词计数
+    word2cnt = Counter(words) # 单词计数  +
     if not os.path.exists('preprocessed'): os.mkdir('preprocessed')
     with codecs.open('preprocessed/{}'.format(fname), 'w', 'utf-8') as fout:
         fout.write("{}\t1000000000\n{}\t1000000000\n{}\t1000000000\n{}\t1000000000\n".format("<PAD>", "<UNK>", "<S>", "</S>"))
