@@ -1,5 +1,7 @@
 # A TensorFlow Implementation of the Transformer: Attention Is All You Need
 
+# fork form https://github.com/Kyubyong/transformer 2017.10
+
 ## Requirements
   * NumPy >= 1.11.1
   * TensorFlow >= 1.2 (Probably 1.1 should work, too, though I didn't test it)
