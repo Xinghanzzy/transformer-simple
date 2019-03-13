@@ -30,7 +30,7 @@ def normalize(inputs,
     with tf.variable_scope(scope, reuse=reuse):
         inputs_shape = inputs.get_shape()
         params_shape = inputs_shape[-1:]
-    
+        #  Tensor("encoder/num_blocks_0/multihead_attention/ln/moments/mean:0", shape=(32, 10, 1), dtype=float32)
         mean, variance = tf.nn.moments(inputs, [-1], keep_dims=True)
         beta= tf.Variable(tf.zeros(params_shape))
         gamma = tf.Variable(tf.ones(params_shape))
@@ -146,9 +146,11 @@ def positional_encoding(inputs,
 
     N, T = inputs.get_shape().as_list()
     with tf.variable_scope(scope, reuse=reuse):
+        #    [1,T] [[0, 1, 2, ..., T]] -> [N, T]
         position_ind = tf.tile(tf.expand_dims(tf.range(T), 0), [N, 1])
 
         # First part of the PE function: sin and cos argument
+        #    [T, num_units] sin(pos/10000^(2i/dmodel) )
         position_enc = np.array([
             [pos / np.power(10000, 2.*i/num_units) for i in range(num_units)]
             for pos in range(T)])
@@ -227,28 +229,29 @@ def multihead_attention(queries,
         
         # Split and concat
         # 分为8头
-        Q_ = tf.concat(tf.split(Q, num_heads, axis=2), axis=0) # (h*N, T_q, C/h) 
+        Q_ = tf.concat(tf.split(Q, num_heads, axis=2), axis=0) # (h*N, T_q, C/h)
         K_ = tf.concat(tf.split(K, num_heads, axis=2), axis=0) # (h*N, T_k, C/h) 
         V_ = tf.concat(tf.split(V, num_heads, axis=2), axis=0) # (h*N, T_k, C/h) 
 
         # Multiplication                             (h*batch,length_q,length_k)
         outputs = tf.matmul(Q_, tf.transpose(K_, [0, 2, 1])) # (h*N, T_q, T_k)
-        
+
         # Scale
         outputs = outputs / (K_.get_shape().as_list()[-1] ** 0.5)
-        
+
         # Key Masking
+            # N, T padding 0
         key_masks = tf.sign(tf.abs(tf.reduce_sum(keys, axis=-1))) # (N, T_k)
         key_masks = tf.tile(key_masks, [num_heads, 1]) # (h*N, T_k)
         key_masks = tf.tile(tf.expand_dims(key_masks, 1), [1, tf.shape(queries)[1], 1]) # (h*N, T_q, T_k)
         # tf.expand_dims(input, dim, name=None) add 1 at dim
         paddings = tf.ones_like(outputs)*(-2**32+1)
         outputs = tf.where(tf.equal(key_masks, 0), paddings, outputs) # (h*N, T_q, T_k)
-  
+
         # Causality = Future blinding
         if causality:
             diag_vals = tf.ones_like(outputs[0, :, :]) # (T_q, T_k)
-            tril = tf.contrib.linalg.LinearOperatorTriL(diag_vals).to_dense() # (T_q, T_k)
+            tril = tf.contrib.linalg.LinearOperatorTriL(diag_vals).to_dense() # (T_q, T_k)  triangular matrix
             masks = tf.tile(tf.expand_dims(tril, 0), [tf.shape(outputs)[0], 1, 1]) # (h*N, T_q, T_k)
    
             paddings = tf.ones_like(masks)*(-2**32+1)

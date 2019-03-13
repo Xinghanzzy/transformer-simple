@@ -25,6 +25,11 @@ class Graph():
                 self.y = tf.placeholder(tf.int32, shape=(None, hp.maxlen))
 
             # define decoder inputs
+                # Star from <S> predicting that next word at a time correspond to the idea of autoregression
+                # scr: 今天天气很好。
+                # tgt:     It's a beautiful day today .     </S>
+                # pred:    <S> It's a   beautiful day today .
+                #   "<S>" predict "It's" ,   "<S> It's" predict "a" , "." predict "</S>"
             self.decoder_inputs = tf.concat((tf.ones_like(self.y[:, :1])*2, self.y[:, :-1]), -1) # 2:<S>
 
             # Load vocabulary    
@@ -47,10 +52,12 @@ class Graph():
                                       zero_pad=False, 
                                       scale=False,
                                       scope="enc_pe")
-                else:                   # self.x (N,T)
+                else:
+
+                    # [N, T, hidden]         self.x (N,T)                      [1, T]                      [N, 1]
                     self.enc += embedding(tf.tile(tf.expand_dims(tf.range(tf.shape(self.x)[1]), 0), [tf.shape(self.x)[0], 1]),
                                       vocab_size=hp.maxlen, 
-                                      num_units=hp.hidden_units, 
+                                      num_units=hp.hidden_units,
                                       zero_pad=False, 
                                       scale=False,
                                       scope="enc_pe")
@@ -65,6 +72,7 @@ class Graph():
                     # The multihead_attention's queries and keys are both self.enc, so this part is self attention.
                     # The result after attention is sent to the feedforward for conversion,
                     # and the output of the blocks is assigned to self.enc.
+                    # 2019-3-11 14:51:15 Here the FFN is done later
                 for i in range(hp.num_blocks):
                     with tf.variable_scope("num_blocks_{}".format(i)):
                         ### Multihead Attention
